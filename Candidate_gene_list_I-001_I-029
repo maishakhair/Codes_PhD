@@ -1,0 +1,82 @@
+# Load necessary libraries
+library(readxl)
+library(dplyr)
+library(writexl)
+library(stringr)
+
+# Define file paths and sheet names
+##add other file sheets for analysis
+candidate_gene_file <- "G:/My Drive/Dropbox/Ferdig Lab/WGS/candidate gene list.xlsx"
+candidate_sheet <- "MKN_paloque"
+snps_file_1 <- "G:/My Drive/Dropbox/Ferdig Lab/WGS/Core SNPs/I-001-CLONE-S15.xlsx"
+snps_sheet_1 <- "missense+stoplist"
+snps_file_2 <- "G:/My Drive/Dropbox/Ferdig Lab/WGS/BD Isolates/I-29_SNPS_QC_CONTROLLED.xlsx"
+snps_sheet_2 <- "foranalysis"
+
+# Amino acid conversion table
+aa_conversion <- c("Ala" = "A", "Arg" = "R", "Asn" = "N", "Asp" = "D", "Cys" = "C",
+                   "Gln" = "Q", "Glu" = "E", "Gly" = "G", "His" = "H", "Ile" = "I",
+                   "Leu" = "L", "Lys" = "K", "Met" = "M", "Phe" = "F", "Pro" = "P",
+                   "Ser" = "S", "Thr" = "T", "Trp" = "W", "Tyr" = "Y", "Val" = "V")
+
+# Function to convert amino acid changes
+convert_aa <- function(aa_string) {
+  for (aa in names(aa_conversion)) {
+    aa_string <- str_replace_all(aa_string, aa, aa_conversion[aa])
+  }
+  return(aa_string)
+}
+
+# Read data from the Excel files
+candidate_genes <- read_excel(candidate_gene_file, sheet = candidate_sheet, col_names = TRUE)
+snps_data_1 <- read_excel(snps_file_1, sheet = snps_sheet_1, col_names = TRUE)
+snps_data_2 <- read_excel(snps_file_2, sheet = snps_sheet_2, col_names = TRUE)
+
+# Rename columns for clarity
+colnames(candidate_genes)[1] <- "Gene_ID"
+colnames(snps_data_1)[1] <- "Gene_ID"
+colnames(snps_data_1)[2] <- "Amino_Acid_Change"
+colnames(snps_data_2)[1] <- "Gene_ID"
+colnames(snps_data_2)[2] <- "Amino_Acid_Change"
+
+# Standardize Gene_ID format: Trim whitespace and convert to uppercase for matching
+candidate_genes <- candidate_genes %>%
+  mutate(Gene_ID = toupper(trimws(Gene_ID)))
+
+snps_data_1 <- snps_data_1 %>%
+  mutate(Gene_ID = toupper(trimws(Gene_ID)))
+
+snps_data_2 <- snps_data_2 %>%
+  mutate(Gene_ID = toupper(trimws(Gene_ID)))
+
+# Convert amino acid changes to one-letter codes
+snps_data_1$Amino_Acid_Change <- sapply(snps_data_1$Amino_Acid_Change, convert_aa)
+snps_data_2$Amino_Acid_Change <- sapply(snps_data_2$Amino_Acid_Change, convert_aa)
+
+# Concatenate multiple amino acid changes under the same Gene_ID
+concatenated_data_1 <- snps_data_1 %>%
+  group_by(Gene_ID) %>%
+  summarise(`I-001` = paste(Amino_Acid_Change, collapse = ", "))
+
+concatenated_data_2 <- snps_data_2 %>%
+  group_by(Gene_ID) %>%
+  summarise(`I-029` = paste(Amino_Acid_Change, collapse = ", "))
+
+# Combine the two datasets (include all Gene_IDs from both I-001 and I-029)
+combined_snps_data <- full_join(concatenated_data_1, concatenated_data_2, by = "Gene_ID")
+
+# Use the correct column name for gene names with backticks to handle spaces
+final_combined_data <- candidate_genes %>%
+  select(Gene_ID, Gene_name = `Gene name`) %>%
+  left_join(combined_snps_data, by = "Gene_ID")
+
+View(final_combined_data)
+
+# Define the output file path and name
+output_file <- "G:/My Drive/Dropbox/Ferdig Lab/WGS/final_combined_candidategenelist.xlsx"
+
+# Save the final combined data as an Excel file
+write_xlsx(final_combined_data, path = output_file)
+
+# Print message confirming save
+print(paste("Data saved to:", output_file))
