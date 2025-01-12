@@ -1,0 +1,245 @@
+# Load necessary libraries
+install.packages("corrplot")
+install.packages("Hmisc")
+
+library(corrplot)
+library(Hmisc)
+
+# Step 1: Load the data
+# Replace the file path with your actual CSV file path
+file_path <- "G:/My Drive/Dropbox/Ferdig Lab/BD isolates/heatmap.csv"
+ic50_data <- read.csv(file_path, row.names = 1)
+
+# Step 2: Prepare the data
+# Ensure ic50_data is a data frame
+ic50_data <- as.data.frame(ic50_data)
+
+# Keep only numeric columns
+ic50_data <- ic50_data[, unlist(sapply(ic50_data, is.numeric))]
+
+# Check the structure to verify the dataset
+str(ic50_data)
+
+# Stop if less than 2 numeric columns
+if (ncol(ic50_data) < 2) {
+  stop("Data must contain more than one numeric column for correlation analysis.")
+}
+
+# Step 3: Perform Spearman correlation
+cor_matrix <- rcorr(as.matrix(ic50_data), type = "spearman")
+
+# Step 4: Create the heatmap
+corrplot(cor_matrix$r, method = "color", type = "lower",
+         addCoef.col = "black", # Add correlation coefficients
+         tl.col = "black",      # Label color
+         tl.srt = 45,           # Rotate labels
+         p.mat = cor_matrix$P,  # Include p-values
+         sig.level = 0.05,      # Significance level
+         insig = "blank",       # Leave insignificant correlations blank
+         col = colorRampPalette(c("red", "white", "blue"))(200)) # Color scheme
+plot
+# Step 5: Save the heatmap as a high-resolution image
+tiff("G:/My Drive/Dropbox/Ferdig Lab/BD isolates/correlation_heatmap.tiff", width = 6, height = 6, units = 'in', res = 300)
+corrplot(cor_matrix$r, method = "color", type = "lower",
+         addCoef.col = "black", 
+         tl.col = "black", tl.srt = 45, 
+         p.mat = cor_matrix$P, sig.level = 0.05, insig = "blank",
+         col = colorRampPalette(c("red", "white", "blue"))(200))
+dev.off()
+
+####trial-2####fail####
+# Load necessary libraries
+install.packages("corrplot")
+install.packages("Hmisc")
+
+library(corrplot)
+library(Hmisc)
+
+# Step 1: Load the data
+file_path <- "G:/My Drive/Dropbox/Ferdig Lab/BD isolates/heatmap.csv"
+ic50_data <- read.csv(file_path, row.names = 1, header = TRUE, na.strings = "N/A") # Convert "N/A" to NA
+
+# Step 2: Clean and prepare the data
+# Ensure all columns are numeric
+ic50_data <- as.data.frame(sapply(ic50_data, function(x) as.numeric(as.character(x))))
+
+# Step 3: Calculate the Spearman correlation matrix
+cor_matrix <- rcorr(as.matrix(ic50_data), type = "spearman")
+
+# Step 4: Mark Missing Data
+# Identify rows/columns with missing data
+missing_data <- is.na(cor_matrix$r)
+
+# Replace missing correlations with 0 for visualization
+cor_matrix$r[missing_data] <- 0
+cor_matrix$P[missing_data] <- 1  # Set p-value to 1 for missing correlations
+
+# Step 5: Create the heatmap
+corrplot(cor_matrix$r, method = "color", type = "lower",
+         addCoef.col = "black",        # Add correlation coefficients
+         tl.col = "black",             # Label color
+         tl.srt = 45,                  # Rotate labels
+         p.mat = cor_matrix$P,         # Include p-values
+         sig.level = 0.05,             # Significance level
+         insig = "blank",              # Leave insignificant correlations blank
+         col = colorRampPalette(c("red", "white", "blue"))(200), # Color scheme
+         na.label = "X",               # Represent missing data with "X"
+         na.label.col = "grey")        # Grey out missing data
+
+# Step 6: Save the heatmap as a high-resolution image
+tiff("G:/My Drive/Dropbox/Ferdig Lab/BD isolates/correlation_heatmap.tiff", width = 6, height = 6, units = 'in', res = 300)
+corrplot(cor_matrix$r, method = "color", type = "lower",
+         addCoef.col = "black", 
+         tl.col = "black", tl.srt = 45, 
+         p.mat = cor_matrix$P, sig.level = 0.05, insig = "blank",
+         col = colorRampPalette(c("red", "white", "blue"))(200),
+         na.label = "X", na.label.col = "grey")
+dev.off()
+
+####trial-3####
+# Load necessary libraries
+install.packages("corrplot")
+install.packages("Hmisc")
+
+library(corrplot)
+library(Hmisc)
+
+# Step 1: Load the data
+file_path <- "G:/My Drive/Dropbox/Ferdig Lab/BD isolates/heatmap.csv"
+ic50_data <- read.csv(file_path, row.names = 1, header = TRUE, na.strings = "N/A")
+
+# Step 2: Clean and prepare the data
+# Ensure all columns are numeric
+ic50_data <- as.data.frame(sapply(ic50_data, function(x) as.numeric(as.character(x))))
+
+# Remove columns with insufficient data
+ic50_data <- ic50_data[, colSums(is.na(ic50_data)) == 0]
+
+# Remove rows with missing data
+ic50_data <- ic50_data[complete.cases(ic50_data), ]
+
+# Verify cleaned data
+str(ic50_data)
+
+# Step 3: Calculate the Spearman correlation matrix
+cor_matrix <- rcorr(as.matrix(ic50_data), type = "spearman")
+
+# Step 4: Create the heatmap
+corrplot(cor_matrix$r, method = "color", type = "lower",
+         addCoef.col = "black",        # Add correlation coefficients
+         tl.col = "black",             # Label color
+         tl.srt = 45,                  # Rotate labels
+         p.mat = cor_matrix$P,         # Include p-values
+         sig.level = 0.05,             # Significance level
+         insig = "blank",              # Leave insignificant correlations blank
+         col = colorRampPalette(c("red", "white", "blue"))(200)) # Color scheme
+
+# Step 5: Save the heatmap as a high-resolution image
+tiff("G:/My Drive/Dropbox/Ferdig Lab/BD isolates/correlation_heatmap.tiff", width = 6, height = 6, units = 'in', res = 300)
+corrplot(cor_matrix$r, method = "color", type = "lower",
+         addCoef.col = "black", 
+         tl.col = "black", tl.srt = 45, 
+         p.mat = cor_matrix$P, sig.level = 0.05, insig = "blank",
+         col = colorRampPalette(c("red", "white", "blue"))(200))
+dev.off()
+
+####trial-4####
+# Load necessary libraries
+install.packages("corrplot")
+install.packages("Hmisc")
+
+library(corrplot)
+library(Hmisc)
+
+# Step 1: Load the data
+file_path <- "G:/My Drive/Dropbox/Ferdig Lab/BD isolates/heatmap.csv"
+ic50_data <- read.csv(file_path, row.names = 1, header = TRUE, na.strings = "N/A")
+
+# Step 2: Handle missing data
+# Replace missing values with column means
+ic50_data <- as.data.frame(lapply(ic50_data, function(x) {
+  as.numeric(ifelse(is.na(x), mean(x, na.rm = TRUE), x))
+}))
+
+# Verify the structure of the cleaned data
+str(ic50_data)
+
+# Step 3: Calculate the Spearman correlation matrix
+cor_matrix <- rcorr(as.matrix(ic50_data), type = "spearman")
+
+# Step 4: Create the heatmap
+corrplot(cor_matrix$r, method = "color", type = "lower",
+         addCoef.col = "black",        # Add correlation coefficients
+         tl.col = "black",             # Label color
+         tl.srt = 45,                  # Rotate labels
+         p.mat = cor_matrix$P,         # Include p-values
+         sig.level = 0.05,             # Significance level
+         insig = "blank",              # Leave insignificant correlations blank
+         col = colorRampPalette(c("red", "white", "blue"))(200)) # Color scheme
+
+# Step 5: Save the heatmap as a high-resolution image
+tiff("G:/My Drive/Dropbox/Ferdig Lab/BD isolates/correlation_heatmap.tiff", width = 6, height = 6, units = 'in', res = 300)
+corrplot(cor_matrix$r, method = "color", type = "lower",
+         addCoef.col = "black", 
+         tl.col = "black", tl.srt = 45, 
+         p.mat = cor_matrix$P, sig.level = 0.05, insig = "blank",
+         col = colorRampPalette(c("red", "white", "blue"))(200))
+dev.off()
+####6####
+# Load necessary libraries
+library(corrplot)
+library(Hmisc)
+
+# Step 1: Load the data
+file_path <- "G:/My Drive/Dropbox/Ferdig Lab/BD isolates/heatmap.csv"
+ic50_data <- read.csv(file_path, row.names = 1, header = TRUE, na.strings = "N/A")
+
+# Step 2: Handle missing data
+# Replace missing values with column means
+ic50_data <- as.data.frame(lapply(ic50_data, function(x) {
+  as.numeric(ifelse(is.na(x), mean(x, na.rm = TRUE), x))
+}))
+
+# Step 3: Calculate the Spearman correlation matrix
+cor_matrix <- rcorr(as.matrix(ic50_data), type = "spearman")
+# Ensure matrices are properly formatted
+cor_matrix$r <- as.matrix(cor_matrix$r)
+cor_matrix$P <- as.matrix(cor_matrix$P)
+
+# Debug step: View structure
+print(dim(cor_matrix$r))
+print(dim(cor_matrix$P))
+
+# Create the heatmap
+corrplot(cor_matrix$r, method = "color", type = "lower",
+         addCoef.col = "black", 
+         tl.col = "black", tl.srt = 45,
+         p.mat = cor_matrix$P, sig.level = 0.05, insig = "blank",
+         col = colorRampPalette(c("red", "white", "blue"))(200))
+corrplot(cor_matrix$r, method = "color", type = "lower",
+         col = colorRampPalette(c("red", "white", "blue"))(200))
+
+
+# Debugging: Check dimensions
+print(dim(cor_matrix$r))
+print(dim(cor_matrix$P))
+
+# View heatmap before saving
+corrplot(cor_matrix$r, method = "color", type = "lower",
+         addCoef.col = "black",        # Add correlation coefficients
+         tl.col = "black",             # Label color
+         tl.srt = 45,                  # Rotate labels
+         p.mat = cor_matrix$P,         # Include p-values
+         sig.level = 0.05,             # Significance level
+         insig = "blank",              # Leave insignificant correlations blank
+         col = colorRampPalette(c("red", "white", "blue"))(200)) # Color scheme
+
+# Save the heatmap as a high-resolution image
+tiff("G:/My Drive/Dropbox/Ferdig Lab/BD isolates/correlation_heatmap.tiff", width = 6, height = 6, units = 'in', res = 300)
+corrplot(cor_matrix$r, method = "color", type = "lower",
+         addCoef.col = "black", 
+         tl.col = "black", tl.srt = 45, 
+         p.mat = cor_matrix$P, sig.level = 0.05, insig = "blank",
+         col = colorRampPalette(c("red", "white", "blue"))(200))
+dev.off()
+
