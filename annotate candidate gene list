@@ -1,0 +1,34 @@
+# Load necessary libraries
+library(dplyr)
+
+# File paths
+final_table_path <- "G:/My Drive/Dropbox/Ferdig Lab/WGS/2nd WGS batch 2024/final_1600_selection_table_v3.csv"
+plasmodb_path <- "G:/My Drive/Dropbox/Ferdig Lab/WGS/2nd WGS batch 2024/Plasmodb_geneanotsfor1600commongenes.v2.csv"
+output_path <- "G:/My Drive/Dropbox/Ferdig Lab/WGS/2nd WGS batch 2024/merged_final_1600_table_with_annotations.csv"
+
+# Load the datasets
+final_table <- read.csv(final_table_path, stringsAsFactors = FALSE)
+plasmodb_data <- read.csv(plasmodb_path, stringsAsFactors = FALSE)
+
+# Debugging: Check column names to ensure alignment
+cat("Columns in final_table:\n")
+print(colnames(final_table))
+
+cat("Columns in plasmodb_data:\n")
+print(colnames(plasmodb_data))
+
+# Ensure no whitespace or case differences in gene_ID columns
+final_table$gene_ID <- trimws(tolower(final_table$gene_ID))
+plasmodb_data$gene_ID <- trimws(tolower(plasmodb_data$gene_ID))
+
+# Merge the tables on gene_ID
+merged_table <- final_table %>%
+  left_join(plasmodb_data, by = "gene_ID")
+
+# Debugging: Check the first few rows of the merged table
+cat("Preview of merged_table:\n")
+print(head(merged_table))
+View(merged_table)
+# Save the merged table to a CSV file
+write.csv(merged_table, output_path, row.names = FALSE)
+cat("Merged table saved to:", output_path, "\n")
